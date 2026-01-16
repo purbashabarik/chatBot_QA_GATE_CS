@@ -1,0 +1,277 @@
+{% extends 'core/index.html' %}
+
+{% block title %}Bot | {% endblock %}
+
+{% block content %}
+<!-- Marked.js for Markdown rendering -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<style>
+    .chat-messages {
+        height: 500px;
+        overflow-y: auto;
+        scroll-behavior: smooth;
+    }
+
+    #chat-message-submit {
+        height: 50px;
+    }
+
+    /* User message bubble */
+    .user-message {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 18px 18px 4px 18px;
+        max-width: 80%;
+        margin-left: auto;
+    }
+
+    /* AI message bubble */
+    .ai-message {
+        background: #f7f7f8;
+        border: 1px solid #e5e5e5;
+        border-radius: 18px 18px 18px 4px;
+        max-width: 90%;
+    }
+
+    /* Markdown content styling */
+    .markdown-content h1, .markdown-content h2, .markdown-content h3 {
+        font-weight: 700;
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+        color: #1a1a1a;
+    }
+    .markdown-content h1 { font-size: 1.5rem; }
+    .markdown-content h2 { font-size: 1.25rem; }
+    .markdown-content h3 { font-size: 1.1rem; }
+
+    .markdown-content p {
+        margin-bottom: 0.75rem;
+        line-height: 1.7;
+    }
+
+    .markdown-content ul, .markdown-content ol {
+        margin-left: 1.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .markdown-content li {
+        margin-bottom: 0.4rem;
+        line-height: 1.6;
+    }
+
+    .markdown-content ul { list-style-type: disc; }
+    .markdown-content ol { list-style-type: decimal; }
+
+    .markdown-content code {
+        background: #e8e8e8;
+        padding: 0.15rem 0.4rem;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9em;
+        color: #d63384;
+    }
+
+    .markdown-content pre {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 1rem;
+        border-radius: 8px;
+        overflow-x: auto;
+        margin: 0.75rem 0;
+    }
+
+    .markdown-content pre code {
+        background: none;
+        padding: 0;
+        color: #d4d4d4;
+    }
+
+    .markdown-content blockquote {
+        border-left: 4px solid #667eea;
+        padding-left: 1rem;
+        margin: 0.75rem 0;
+        color: #555;
+        font-style: italic;
+    }
+
+    .markdown-content strong {
+        font-weight: 700;
+        color: #1a1a1a;
+    }
+
+    .markdown-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0.75rem 0;
+    }
+
+    .markdown-content th, .markdown-content td {
+        border: 1px solid #ddd;
+        padding: 0.5rem;
+        text-align: left;
+    }
+
+    .markdown-content th {
+        background: #f0f0f0;
+        font-weight: 600;
+    }
+
+    /* AI avatar */
+    .ai-avatar {
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+
+    /* User avatar */
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+        background: #10b981;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+</style>
+
+
+<div class="p-6 lg:p-5 text-center">
+    <h1 class="text-xl lg:text-4xl text-white">Ask from Books</h1>
+</div>
+
+<div class="lg:w-3/4 mx-4 lg:mx-auto p-4 bg-white rounded-xl shadow-lg">
+    <div class="chat-messages space-y-4" id="chat-messages">
+        <!-- Chat messages will appear here -->
+    </div>
+</div>
+
+<div class="fixed inset-x-0 bottom-8 lg:w-3/4 mt-6 mx-4 lg:mx-auto p-4 bg-white rounded-xl">
+    <form method="post" class="flex flex-col lg:flex-row">
+        {% csrf_token %}
+        <div class="flex-1 mr-3">
+            <textarea name="content" class="w-full h-auto resizable" placeholder="Your message..." id="chat-message-input"></textarea>
+        </div>
+        <button 
+            class="px-5 py-3 lg:py-0 rounded-xl text-white bg-teal-600 hover:bg-teal-700"
+            id="chat-message-submit">Submit</button>
+    </form>
+</div>
+
+<!-- Loader -->
+<div id="loader" class="hidden fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
+    <svg aria-hidden="true" class="w-20 h-20 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+        <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+    </svg>
+    <span class="sr-only">Loading...</span>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        const chatMessages = document.getElementById('chat-messages');
+        const loader = document.getElementById('loader');
+        const textarea = document.getElementById('chat-message-input');
+
+        // Configure marked.js options
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+            headerIds: false,
+            mangle: false
+        });
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(form);
+            const userQuestion = formData.get('content');
+            
+            // Add user message immediately
+            addUserMessage(userQuestion);
+            form.reset();
+            
+            sendMessage(formData);
+        });
+
+        textarea.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                form.dispatchEvent(new Event('submit'));
+            }
+        });
+
+        function addUserMessage(message) {
+            const userDiv = document.createElement('div');
+            userDiv.classList.add('flex', 'justify-end', 'gap-3', 'items-start');
+            userDiv.innerHTML = `
+                <div class="user-message p-4 shadow-sm">
+                    <p class="text-white">${escapeHtml(message)}</p>
+                </div>
+                <div class="user-avatar">U</div>
+            `;
+            chatMessages.appendChild(userDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addAIMessage(answer) {
+            const aiDiv = document.createElement('div');
+            aiDiv.classList.add('flex', 'gap-3', 'items-start');
+            aiDiv.innerHTML = `
+                <div class="ai-avatar">AI</div>
+                <div class="ai-message p-4 shadow-sm">
+                    <div class="markdown-content">${marked.parse(answer)}</div>
+                </div>
+            `;
+            chatMessages.appendChild(aiDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function sendMessage(formData) {
+            loader.classList.remove('hidden');
+
+            fetch('{% url "chat_book" %}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                addAIMessage(data.answer);
+                loader.classList.add('hidden');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                addAIMessage('Sorry, something went wrong. Please try again.');
+                loader.classList.add('hidden');
+            });
+        }
+    });
+
+    // Auto-resize textarea
+    const textarea = document.getElementById('chat-message-input');
+    textarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+    });
+</script>
+
+{% endblock %}

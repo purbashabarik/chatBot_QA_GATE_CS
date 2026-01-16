@@ -1,0 +1,35 @@
+{% extends 'core/index.html' %}
+
+{% block title %}Rooms | {% endblock %}
+
+{% block content %}
+<div class="p-10 lg:p-20 text-center">
+    <h1 class="text-3xl lg:text-6xl text-white">ILNCE ROOMS</h1>
+</div>
+
+<div class="flex justify-center items-center v-screen mt-10"> <!-- Center vertically and horizontally -->
+    <div class="w-full lg:w-1/3 px-3 py-3 mt-30 mr-10">
+        <div class="p-4 bg-white shadow rounded-xl text-center">
+            <h2 class="mb-5 text-2xl font-semibold">PYQ</h2>
+            <a href="{% url 'room' %}" class="px-5 py-3 block rounded-xl text-white bg-teal-600 hover:bg-teal-700">Join</a>
+        </div>
+    </div>
+    <div class="h-10"></div> 
+        <!-- <div class="w-full lg:w-1/4 px-3 py-3">
+            <div class="p-4 bg-white shadow rounded-xl text-center">
+                <h2 class="mb-5 text-2xl font-semibold">ARTICLES</h2>
+
+                <a href="#" class="px-5 py-3 block rounded-xl text-white bg-teal-600 hover:bg-teal-700">Join</a>
+            </div>
+        </div> -->
+
+        <div class="w-full lg:w-1/3 px-3 py-3 mt-30 ml-10 ">
+            <div class="p-4 bg-white shadow rounded-xl text-center">
+                <h2 class="mb-5 text-2xl font-semibold">BOOKS</h2>
+
+                <a href="{% url 'room_books' %}" class="px-5 py-3 block rounded-xl text-white bg-teal-600 hover:bg-teal-700">Join</a>
+            </div>
+        </div>
+
+</div>
+{% endblock %}

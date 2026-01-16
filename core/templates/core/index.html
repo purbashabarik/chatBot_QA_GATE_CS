@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" >
+        <title> ILNCE </title>
+        <script src="https://cdn.tailwindcss.com">  </script>
+    </head>
+    <style>
+        body {
+            background-image: url('https://img.freepik.com/free-vector/background-realistic-abstract-technology-particle_23-2148431735.jpg?w=1060&t=st=1713651240~exp=1713651840~hmac=97405ae74f0bca52f3b68e43775cf0248c84bca2ecd57e0e931c35dfde3dd23a'); /* Replace 'path/to/your/image.jpg' with the actual path to your image */
+            background-size: cover; /* This ensures the image covers the entire background */
+            background-repeat: no-repeat; /* Prevents the image from repeating */
+            background-attachment: fixed; /* Fixes the background image */
+        }
+    </style>
+    <body>
+        <nav style="background-color: #272d30;" class="flex items-center justify-between px-4 py-4">
+            <div>
+                <a href="/" class="text-xl text-white px-5">ILNCE CHAT</a>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                {% if request.user.is_authenticated %}
+                    <a href="/rooms/" class="text-white hover:text-gray-200">Rooms</a>
+
+                    <a href="/logout/" class="px-5 py-3 rounded-xl text-white bg-teal-600 hover:bg-teal-700">Log out</a>
+                {% else %}
+                    <a href="/login/" class="text-white hover:text-gray-200">Log in</a>
+            
+                    <a href="/signup/" class="px-5 py-3 rounded-xl text-white bg-teal-600 hover:bg-teal-700">Sign up</a>
+                {% endif %}
+            </div>
+        </nav>
+
+        {% block content %}
+        {% endblock %}
+
+        {% block scripts %}
+        {% endblock %}
+    </body>
+
+</html>
